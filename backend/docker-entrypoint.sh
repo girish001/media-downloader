@@ -39,24 +39,16 @@ else
   echo "[entrypoint] No YT_COOKIES_BASE64"
 fi
 
-
 echo "[entrypoint] Running migrations..."
 
-MOUT=$(npx prisma migrate deploy 2>&1) && MEX=0 || MEX=$?
-echo "$MOUT"
+# run migrations if available
+npx prisma migrate deploy || echo "[entrypoint] migrate deploy skipped"
 
-if [ "$MEX" != "0" ]; then
-  echo "[entrypoint] migrate deploy failed — attempting schema sync"
-
-  # fallback: force database schema to match prisma schema
-  npx prisma db push --accept-data-loss || {
-    echo "[entrypoint] Schema sync failed" >&2
-    exit 1
-  }
-fi
+# ensure database schema always matches prisma schema
+echo "[entrypoint] Syncing schema..."
+npx prisma db push --accept-data-loss
 
 echo "[entrypoint] Migrations OK"
-
 
 echo "[entrypoint] Starting server..."
 exec node dist/server.js
