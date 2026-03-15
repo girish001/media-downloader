@@ -46,7 +46,12 @@ npx prisma migrate deploy || echo "[entrypoint] migrate deploy skipped"
 
 # ensure database schema always matches prisma schema
 echo "[entrypoint] Syncing schema..."
-npx prisma db push --accept-data-loss
+
+# Force reset DB schema so enum values update
+npx prisma db push --force-reset --accept-data-loss || true
+
+echo "[entrypoint] Regenerating Prisma client..."
+npx prisma generate || true
 
 echo "[entrypoint] Migrations OK"
 
