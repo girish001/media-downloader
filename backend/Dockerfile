@@ -24,7 +24,7 @@ RUN apk add --no-cache openssl wget unzip ca-certificates python3 py3-pip ffmpeg
 RUN pip3 install --upgrade --break-system-packages yt-dlp && yt-dlp --version
 
 # Install required tools
-RUN apt-get update && apt-get install -y curl unzip
+RUN apk add --no-cache curl unzip
 
 # Install Deno
 RUN curl -fsSL https://github.com/denoland/deno/releases/download/v1.44.4/deno-x86_64-unknown-linux-gnu.zip -o deno.zip \
