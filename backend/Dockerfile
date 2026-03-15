@@ -23,13 +23,16 @@ RUN apk add --no-cache openssl wget unzip ca-certificates python3 py3-pip ffmpeg
 
 RUN pip3 install --upgrade --break-system-packages yt-dlp && yt-dlp --version
 
-# Pin to specific Deno version - busybox wget cannot follow GitHub /latest/ redirects
-RUN wget https://github.com/denoland/deno/releases/download/v1.44.4/deno-x86_64-unknown-linux-gnu.zip \
-         -O /tmp/deno.zip && \
-    unzip /tmp/deno.zip -d /usr/local/bin/ && \
-    chmod +x /usr/local/bin/deno && \
-    rm /tmp/deno.zip && \
-    deno --version
+# Install required tools
+RUN apt-get update && apt-get install -y curl unzip
+
+# Install Deno
+RUN curl -fsSL https://github.com/denoland/deno/releases/download/v1.44.4/deno-x86_64-unknown-linux-gnu.zip -o deno.zip \
+    && unzip deno.zip \
+    && mv deno /usr/local/bin/deno \
+    && chmod +x /usr/local/bin/deno \
+    && rm deno.zip \
+    && deno --version
 
 RUN addgroup -g 1001 -S nodejs && adduser -S fastify -u 1001
 
