@@ -1,0 +1,27 @@
+# ─────────────────────────────────────────────────────────────
+# frontend/railway.toml
+#
+# DASHBOARD SETUP (one-time):
+#   Service → Settings → Root Directory → set to: /frontend
+#
+# REQUIRED variables to set in Railway dashboard (Variables tab):
+#   BACKEND_URL   = https://<your-backend-service>.up.railway.app
+# ─────────────────────────────────────────────────────────────
+
+[build]
+  builder        = "dockerfile"
+  dockerfilePath = "Dockerfile"
+
+[deploy]
+  startCommand            = "node server.js"
+  healthcheckPath         = "/"
+  healthcheckTimeout      = 300
+  restartPolicyType       = "on_failure"
+  restartPolicyMaxRetries = 3
+
+# FIX: [variables] is the correct Railway TOML syntax for env vars
+[variables]
+  NODE_ENV                = "production"
+  PORT                    = "3000"
+  HOSTNAME                = "0.0.0.0"
+  NEXT_TELEMETRY_DISABLED = "1"

@@ -1,0 +1,34 @@
+# ──────────────────────────────────────────────────────────────────────
+#  worker/railway.toml
+#  Service → Settings → Root Directory = /worker
+#  No public port — outbound only.
+#
+#  REQUIRED env vars — add in Railway dashboard → Worker → Variables:
+#
+#  DATABASE_URL          auto-injected by Railway Postgres plugin
+#  REDIS_URL             auto-injected by Railway Redis plugin
+#  AWS_ACCESS_KEY_ID     same as Backend
+#  AWS_SECRET_ACCESS_KEY same as Backend
+#  AWS_REGION            same as Backend
+#  AWS_BUCKET            same as Backend
+#  YT_COOKIES_BASE64     same as Backend (optional)
+# ──────────────────────────────────────────────────────────────────────
+
+[build]
+  builder        = "dockerfile"
+  dockerfilePath = "Dockerfile"
+
+[deploy]
+  restartPolicyType       = "on_failure"
+  restartPolicyMaxRetries = 5
+
+[variables]
+  NODE_ENV               = "production"
+  TMP_DIR                = "/tmp/mediaproc"
+  MAX_CONCURRENT_JOBS    = "2"
+  MAX_VIDEO_SIZE_MB      = "500"
+  FILE_TTL_HOURS         = "24"
+  JOB_TIMEOUT_SEC        = "600"
+  YTDLP_TIMEOUT_SEC      = "300"
+  MAX_VIDEO_DURATION_SEC = "7200"
+  LOG_LEVEL              = "info"

@@ -1,0 +1,40 @@
+# ──────────────────────────────────────────────────────────────────────
+#  backend/railway.toml
+#  Service → Settings → Root Directory = /backend
+#
+#  REQUIRED env vars — add in Railway dashboard → Backend → Variables:
+#
+#  DATABASE_URL          auto-injected by Railway Postgres plugin
+#  REDIS_URL             auto-injected by Railway Redis plugin
+#  AWS_ACCESS_KEY_ID     your IAM user access key
+#  AWS_SECRET_ACCESS_KEY your IAM user secret key
+#  AWS_REGION            e.g. us-east-1
+#  AWS_BUCKET            e.g. mediaproc-videos
+#  CORS_ORIGIN           https://<your-frontend>.up.railway.app
+#  YT_COOKIES_BASE64     base64 of cookies.txt (optional, improves YouTube)
+# ──────────────────────────────────────────────────────────────────────
+
+[build]
+  builder        = "dockerfile"
+  dockerfilePath = "Dockerfile"
+
+[deploy]
+  healthcheckPath         = "/health"
+  healthcheckTimeout      = 60
+  restartPolicyType       = "on_failure"
+  restartPolicyMaxRetries = 3
+
+[variables]
+  NODE_ENV                   = "production"
+  PORT                       = "4000"
+  TMP_DIR                    = "/tmp/mediaproc"
+  FILE_TTL_HOURS             = "24"
+  MAX_VIDEO_SIZE_MB          = "500"
+  RATE_LIMIT_GLOBAL_MAX      = "300"
+  RATE_LIMIT_GLOBAL_WINDOW   = "1 minute"
+  RATE_LIMIT_DOWNLOAD_MAX    = "60"
+  RATE_LIMIT_DOWNLOAD_WINDOW = "10 minutes"
+  RATE_LIMIT_DAILY_MAX       = "20"
+  JOB_TIMEOUT_SEC            = "600"
+  SIGNED_URL_TTL_SEC         = "3600"
+  LOG_LEVEL                  = "info"

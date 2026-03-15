@@ -1,0 +1,51 @@
+# ── Secrets — NEVER commit these ─────────────────────────────────────
+.env
+.env.local
+.env.production
+.env.production.local
+*.pem
+*.key
+secrets/
+
+# ── Node ──────────────────────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# ── Build outputs ─────────────────────────────────────────────────────
+dist/
+build/
+.next/
+out/
+
+# ── Prisma ────────────────────────────────────────────────────────────
+# Generated client is rebuilt on deploy — do not commit
+backend/node_modules/
+worker/node_modules/
+frontend/node_modules/
+
+# ── TypeScript ────────────────────────────────────────────────────────
+*.tsbuildinfo
+
+# ── OS / Editor ───────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ── Logs ─────────────────────────────────────────────────────────────
+logs/
+*.log
+
+# ── Temp / media processing ───────────────────────────────────────────
+tmp/
+/tmp/mediaproc/
+
+# ── Docker build cache ────────────────────────────────────────────────
+.dockerignore.local
+
+# ── Railway ───────────────────────────────────────────────────────────
+# .railway/ is local only
+.railway/
