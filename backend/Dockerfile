@@ -23,17 +23,12 @@ RUN apk add --no-cache openssl wget unzip ca-certificates python3 py3-pip ffmpeg
 
 RUN pip3 install --upgrade --break-system-packages yt-dlp && yt-dlp --version
 
-# Install required tools
-RUN apk add --no-cache curl unzip
-
 # Install Deno
-RUN curl -fsSL https://github.com/denoland/deno/releases/download/v1.44.4/deno-x86_64-unknown-linux-gnu.zip -o deno.zip \
-    && unzip deno.zip \
-    && mv deno /usr/local/bin/deno \
-    && chmod +x /usr/local/bin/deno \
-    && rm deno.zip \
-    && deno --version
-
+RUN wget -qO- https://deno.land/install.sh | sh \
+ && mv /root/.deno/bin/deno /usr/local/bin/deno \
+ && chmod +x /usr/local/bin/deno \
+ && deno --version
+ 
 RUN addgroup -g 1001 -S nodejs && adduser -S fastify -u 1001
 
 COPY --from=deps    --chown=fastify:nodejs /app/node_modules ./node_modules
