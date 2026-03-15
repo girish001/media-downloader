@@ -136,49 +136,62 @@ export abstract class BaseExtractor implements IExtractor {
     return info;
   }
 
- /* ─── Build format list ──────────────────────────────────────────── */
+/* ─── Build format list ──────────────────────────────────────────── */
 protected buildFormats(info: YtdlpInfo): FormatOption[] {
 
   const formats: FormatOption[] = [];
   const rawFormats = info.formats ?? [];
 
-  const seen = new Set<string>();
+  const tiers = [
+    { id: '144p', height: 144, label: '144p' },
+    { id: '240p', height: 240, label: '240p' },
+    { id: '360p', height: 360, label: '360p' },
+    { id: '480p', height: 480, label: '480p' },
+    { id: '720p', height: 720, label: '720p HD' },
+    { id: '1080p', height: 1080, label: '1080p HD' },
+    { id: '1440p', height: 1440, label: '1440p QHD' },
+    { id: '4k', height: 2160, label: '4K Ultra HD' }
+  ];
+
+  const availableHeights = new Set<number>();
 
   for (const f of rawFormats) {
-
-    if (!f.format_id) continue;
-
-    const hasVideo = f.vcodec && f.vcodec !== 'none';
-    const hasAudio = f.acodec && f.acodec !== 'none';
-
-    if (!hasVideo && !hasAudio) continue;
-
-    let label = '';
-
-    if (hasVideo && f.height) {
-      label = `${f.height}p`;
-    } else if (hasAudio && !hasVideo) {
-      label = 'Audio';
-    } else {
-      label = 'Video';
+    if (f.vcodec && f.vcodec !== 'none' && f.height) {
+      availableHeights.add(f.height);
     }
+  }
 
-    // avoid duplicate format ids
-    if (seen.has(f.format_id)) continue;
-    seen.add(f.format_id);
+  // add audio option first
+  formats.push({
+    id: 'mp3',
+    label: 'Audio',
+    ext: 'mp3',
+    hasVideo: false,
+    hasAudio: true,
+    ytdlpFormatId: 'mp3'
+  });
+
+  // add video tiers
+  for (const tier of tiers) {
+
+    const exists = Array.from(availableHeights).some(
+      h => h >= tier.height
+    );
+
+    if (!exists) continue;
 
     formats.push({
-      id: f.format_id,
-      label,
-      ext: f.ext || 'mp4',
-      hasVideo,
-      hasAudio,
-      ytdlpFormatId: f.format_id
+      id: tier.id,
+      label: tier.label,
+      ext: 'mp4',
+      hasVideo: true,
+      hasAudio: true,
+      ytdlpFormatId: tier.id
     });
 
   }
 
-  // fallback if nothing detected
+  // fallback safety
   if (formats.length === 0) {
     formats.push({
       id: 'best',
@@ -186,7 +199,7 @@ protected buildFormats(info: YtdlpInfo): FormatOption[] {
       ext: 'mp4',
       hasVideo: true,
       hasAudio: true,
-      ytdlpFormatId: 'bv*+ba/b'
+      ytdlpFormatId: 'best'
     });
   }
 
