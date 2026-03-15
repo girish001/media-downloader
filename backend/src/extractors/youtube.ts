@@ -51,7 +51,7 @@ export class YoutubeExtractor extends BaseExtractor {
 
       // important: avoid missing formats
       '--extractor-args',
-      'youtube:player_client=web_embedded,web'
+      'youtube:player_client=web_embedded'
     ];
 
     if (process.env.YT_COOKIES_FILE) {
