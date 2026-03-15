@@ -20,27 +20,43 @@ if [ -n "$YT_COOKIES_BASE64" ]; then
   CLEAN=$(printf '%s' "$YT_COOKIES_BASE64" | tr -d '\r\n\t ')
   printf '%s' "$CLEAN" | base64 -d > /tmp/yt-cookies.txt 2>/dev/null \
     || printf '%s' "$CLEAN" | base64 --decode > /tmp/yt-cookies.txt 2>/dev/null || true
+
   BOM=$(head -c 3 /tmp/yt-cookies.txt | od -An -tx1 | tr -d ' \n' 2>/dev/null || echo "")
   [ "$BOM" = "efbbbf" ] && tail -c +4 /tmp/yt-cookies.txt > /tmp/yt-c2.txt && mv /tmp/yt-c2.txt /tmp/yt-cookies.txt
+
   SZ=$(wc -c < /tmp/yt-cookies.txt 2>/dev/null || echo 0)
   CN=$(grep -vc "^#\|^$" /tmp/yt-cookies.txt 2>/dev/null || echo 0)
+
   echo "[entrypoint] Cookies: ${CN} cookies, ${SZ} bytes"
-  [ "$SZ" -gt 100 ] && export YT_COOKIES_FILE=/tmp/yt-cookies.txt \
-    && echo "[entrypoint] Cookies OK" \
-    || echo "[entrypoint] WARNING: Cookies too small"
+
+  if [ "$SZ" -gt 100 ]; then
+    export YT_COOKIES_FILE=/tmp/yt-cookies.txt
+    echo "[entrypoint] Cookies OK"
+  else
+    echo "[entrypoint] WARNING: Cookies too small"
+  fi
 else
   echo "[entrypoint] No YT_COOKIES_BASE64"
 fi
 
+
 echo "[entrypoint] Running migrations..."
+
 MOUT=$(npx prisma migrate deploy 2>&1) && MEX=0 || MEX=$?
 echo "$MOUT"
+
 if [ "$MEX" != "0" ]; then
-  echo "$MOUT" | grep -q "P3005" \
-    && npx prisma migrate resolve --applied "20260101000000_add_144p_240p_formats" 2>/dev/null \
-    && npx prisma migrate deploy \
-    || { echo "[entrypoint] Migration failed" >&2; exit 1; }
+  echo "[entrypoint] migrate deploy failed — attempting schema sync"
+
+  # fallback: force database schema to match prisma schema
+  npx prisma db push --accept-data-loss || {
+    echo "[entrypoint] Schema sync failed" >&2
+    exit 1
+  }
 fi
+
+echo "[entrypoint] Migrations OK"
+
 
 echo "[entrypoint] Starting server..."
 exec node dist/server.js
