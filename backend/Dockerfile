@@ -27,7 +27,7 @@ RUN pip3 install --upgrade --break-system-packages yt-dlp && yt-dlp --version
 RUN wget -qO- https://deno.land/install.sh | sh \
  && mv /root/.deno/bin/deno /usr/local/bin/deno \
  && chmod +x /usr/local/bin/deno \
- && deno --version
+ && /usr/local/bin/deno --version
  
 RUN addgroup -g 1001 -S nodejs && adduser -S fastify -u 1001
 
