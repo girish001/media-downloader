@@ -42,14 +42,19 @@ function normaliseYouTubeUrl(url: string): string {
 export class YoutubeExtractor extends BaseExtractor {
   readonly platform = 'youtube';
 
-  protected extraArgs(): string[] {
-    const args: string[] = [
-      '--geo-bypass',
-      '--force-ipv4',
-      '--no-cache-dir',
-      '--no-mark-watched',
-      '--add-header', 'User-Agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    ];
+ protected extraArgs(): string[] {
+  const args: string[] = [
+    '--geo-bypass',
+    '--force-ipv4',
+    '--no-cache-dir',
+    '--no-mark-watched',
+
+    '--remote-components',
+    'ejs:github',
+
+    '--add-header',
+    'User-Agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  ];
 
     if (process.env.YT_COOKIES_FILE) {
       args.push('--cookies', process.env.YT_COOKIES_FILE);
