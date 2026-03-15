@@ -136,36 +136,62 @@ export abstract class BaseExtractor implements IExtractor {
     return info;
   }
 
-  /* ─── Build format list ──────────────────────────────────────────── */
-  protected buildFormats(info: YtdlpInfo): FormatOption[] {
-    const rawFormats = info.formats ?? [];
+ /* ─── Build format list ──────────────────────────────────────────── */
+protected buildFormats(info: YtdlpInfo): FormatOption[] {
 
-    const availableHeights = new Set<number>(
-      rawFormats.filter(f => f.vcodec && f.vcodec !== 'none' && f.height).map(f => f.height!)
-    );
+  const formats: FormatOption[] = [];
+  const rawFormats = info.formats ?? [];
 
-    const formats: FormatOption[] = [];
-    const seen = new Set<string>();
+  const seen = new Set<string>();
 
-    for (const tier of VIDEO_HEIGHTS) {
-      if (availableHeights.size > 0 && !Array.from(availableHeights).some(h => h >= tier.height)) continue;
-      if (!seen.has(tier.id)) {
-        seen.add(tier.id);
-        formats.push({ id: tier.id, label: tier.label, ext: 'mp4', hasVideo: true, hasAudio: true, ytdlpFormatId: heightSelector(tier.height) });
-      }
+  for (const f of rawFormats) {
+
+    if (!f.format_id) continue;
+
+    const hasVideo = f.vcodec && f.vcodec !== 'none';
+    const hasAudio = f.acodec && f.acodec !== 'none';
+
+    if (!hasVideo && !hasAudio) continue;
+
+    let label = '';
+
+    if (hasVideo && f.height) {
+      label = `${f.height}p`;
+    } else if (hasAudio && !hasVideo) {
+      label = 'Audio';
+    } else {
+      label = 'Video';
     }
 
-    if (!seen.has('mp3')) {
-      formats.push({ id: 'mp3', label: 'MP3 Audio', ext: 'mp3', hasVideo: false, hasAudio: true, ytdlpFormatId: 'ba/b' });
-    }
+    // avoid duplicate format ids
+    if (seen.has(f.format_id)) continue;
+    seen.add(f.format_id);
 
-    // Always ensure at least one video format is available as fallback
-    if (formats.filter(f => f.hasVideo).length === 0) {
-      formats.unshift({ id: 'best', label: 'Best Quality', ext: 'mp4', hasVideo: true, hasAudio: true, ytdlpFormatId: 'bv*+ba/b[ext=mp4]/b' });
-    }
+    formats.push({
+      id: f.format_id,
+      label,
+      ext: f.ext || 'mp4',
+      hasVideo,
+      hasAudio,
+      ytdlpFormatId: f.format_id
+    });
 
-    return formats;
   }
+
+  // fallback if nothing detected
+  if (formats.length === 0) {
+    formats.push({
+      id: 'best',
+      label: 'Best Quality',
+      ext: 'mp4',
+      hasVideo: true,
+      hasAudio: true,
+      ytdlpFormatId: 'bv*+ba/b'
+    });
+  }
+
+  return formats;
+}
 
   /* ─── IExtractor ────────────────────────────────────────────────── */
   async getMetadata(url: string): Promise<MediaMeta> {
