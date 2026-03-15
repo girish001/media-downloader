@@ -73,7 +73,7 @@ const VIDEO_HEIGHTS: Array<{ height: number; label: string; id: string }> = [
 ];
 
 function heightSelector(h: number): string {
-  return `bestvideo[height<=${h}]+bestaudio/best[height<=${h}]/best`;
+  return `bestvideo[height<=${h}]+bestaudio/bestvideo[height<=${h}]/best`;
 }
 
 export abstract class BaseExtractor implements IExtractor {
