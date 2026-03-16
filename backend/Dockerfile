@@ -54,13 +54,11 @@ RUN apk add --no-cache openssl wget python3 py3-pip ca-certificates ffmpeg git &
 # Install canvas native build deps (required by bgutil server's canvas dependency)
 RUN apk add --no-cache pkgconfig pixman-dev cairo-dev pango-dev jpeg-dev giflib-dev make g++ python3 && \
     pip3 install --break-system-packages bgutil-ytdlp-pot-provider && \
-    git clone --depth 1 https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git /tmp/bgutil-build
-WORKDIR /tmp/bgutil-build/server
-RUN npm install && \
-    npm install typescript@5 @types/node @types/express @types/jsdom --no-save && \
-    ./node_modules/.bin/tsc --skipLibCheck
-WORKDIR /app
-RUN mv /tmp/bgutil-build /opt/bgutil-ytdlp-pot-provider && \
+    git clone --depth 1 https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git /tmp/bgutil-build && \
+    npm --prefix /tmp/bgutil-build/server install --ignore-scripts && \
+    npm --prefix /tmp/bgutil-build/server install typescript@5 @types/node @types/express @types/jsdom --no-save --ignore-scripts && \
+    /tmp/bgutil-build/server/node_modules/typescript/bin/tsc --skipLibCheck -p /tmp/bgutil-build/server/tsconfig.json && \
+    mv /tmp/bgutil-build /opt/bgutil-ytdlp-pot-provider && \
     echo "bgutil POT provider installed"
 
 COPY --from=deps    --chown=fastify:nodejs /app/node_modules    ./node_modules
