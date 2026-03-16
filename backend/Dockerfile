@@ -53,7 +53,7 @@ RUN apk add --no-cache openssl wget python3 py3-pip ca-certificates ffmpeg git &
 # ── bgutil PO token provider for yt-dlp (prebuilt version)
 # ── bgutil PO token provider (server required for PO tokens)
 # bgutil PO token provider
-RUN RUN apk add --no-cache \
+RUN apk add --no-cache \
 python3 \
 py3-pip \
 git \
