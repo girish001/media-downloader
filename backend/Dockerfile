@@ -55,9 +55,10 @@ RUN apk add --no-cache openssl wget python3 py3-pip ca-certificates ffmpeg git &
 RUN apk add --no-cache pkgconfig pixman-dev cairo-dev pango-dev jpeg-dev giflib-dev make g++ python3 && \
     pip3 install --break-system-packages bgutil-ytdlp-pot-provider && \
     git clone --depth 1 https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git /tmp/bgutil-build && \
-    npm install -g typescript@5 @types/node @types/express @types/jsdom && \
-    (cd /tmp/bgutil-build/server && npm install) && \
-    node $(npm root -g)/typescript/bin/tsc --skipLibCheck -p /tmp/bgutil-build/server/tsconfig.json && \
+    npm install -g typescript@5 && \
+    node -e "require('child_process').execSync('npm install', {cwd:'/tmp/bgutil-build/server',stdio:'inherit'})" && \
+    node -e "require('child_process').execSync('npm install --save-dev @types/node @types/express @types/jsdom', {cwd:'/tmp/bgutil-build/server',stdio:'inherit'})" && \
+    node -e "require('child_process').execSync('node ' + require('path').join(require('child_process').execSync('npm root -g').toString().trim(),'typescript/bin/tsc') + ' --skipLibCheck -p tsconfig.json', {cwd:'/tmp/bgutil-build/server',stdio:'inherit'})" && \
     mv /tmp/bgutil-build /opt/bgutil-ytdlp-pot-provider && \
     echo "bgutil POT provider installed"
 
