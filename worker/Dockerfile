@@ -79,10 +79,14 @@ RUN apk add --no-cache wget git python3 py3-pip && \
 # Install canvas native build deps (required by bgutil server's canvas dependency)
 RUN apk add --no-cache pkgconfig pixman-dev cairo-dev pango-dev jpeg-dev giflib-dev make g++ python3 && \
     pip3 install --break-system-packages bgutil-ytdlp-pot-provider && \
-    git clone --depth 1 https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git /tmp/bgutil-build && \
-    sh -c 'cd /tmp/bgutil-build/server && npm install && npm install --save-dev typescript @types/node @types/express @types/jsdom && ./node_modules/.bin/tsc --skipLibCheck' && \
-    mv /tmp/bgutil-build /opt/bgutil-ytdlp-pot-provider && \
-    echo "bgutil POT provider installed" 
+    git clone --depth 1 https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git /tmp/bgutil-build
+WORKDIR /tmp/bgutil-build/server
+RUN npm install && \
+    npm install --save-dev typescript @types/node @types/express @types/jsdom && \
+    ./node_modules/.bin/tsc --skipLibCheck
+WORKDIR /app
+RUN mv /tmp/bgutil-build /opt/bgutil-ytdlp-pot-provider && \
+    echo "bgutil POT provider installed"
 
 # ── Runtime user + temp directory
 RUN addgroup -g 1001 -S nodejs && \
