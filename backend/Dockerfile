@@ -51,9 +51,11 @@ RUN apk add --no-cache openssl wget python3 py3-pip ca-certificates ffmpeg git &
     adduser  -S fastify -u 1001
 
 # ── bgutil PO token provider for yt-dlp (prebuilt version)
-RUN apk add --no-cache python3 py3-pip && \
+# ── bgutil PO token provider (server required for PO tokens)
+RUN apk add --no-cache python3 py3-pip git && \
     pip3 install --break-system-packages bgutil-ytdlp-pot-provider && \
-    echo "bgutil POT provider installed"
+    git clone --depth 1 https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git \
+        /opt/bgutil-ytdlp-pot-provider
 
 COPY --from=deps    --chown=fastify:nodejs /app/node_modules    ./node_modules
 COPY --from=builder --chown=fastify:nodejs /app/dist            ./dist
