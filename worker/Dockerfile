@@ -83,7 +83,17 @@ RUN apk add --no-cache wget git python3 py3-pip && \
 # bgutil PO token provider
 # bgutil PO token provider
 RUN apk add --no-cache \
-    python3 py3-pip git npm \
+python3 \
+py3-pip \
+git \
+npm \
+pkgconfig \
+pixman-dev \
+cairo-dev \
+pango-dev \
+jpeg-dev \
+giflib-dev \
+build-base
     pkgconfig pixman-dev cairo-dev pango-dev jpeg-dev giflib-dev build-base && \
     pip3 install --break-system-packages bgutil-ytdlp-pot-provider && \
     git clone --depth 1 https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git \
