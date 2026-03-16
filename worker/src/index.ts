@@ -300,7 +300,10 @@ async function processJob(job: Job): Promise<{
     // bgutil PO token provider runs on port 4416 (started by entrypoint).
     // yt-dlp discovers it via the installed pip plugin — no manual po_token needed.
     // mweb is primary (best quality). tv/tv_simply are cookie-free fallbacks.
-    let extractorArgs = 'youtube:player_client=mweb,tv_embedded,tv,tv_simply,ios';
+    // mweb requires a PO token from datacenter IPs (Railway) — without bgutil
+    // running it returns 'DRM protected' errors. Use tv clients which work
+    // without PO tokens. mweb is only enabled when YT_PO_TOKEN is set manually.
+    let extractorArgs = 'youtube:player_client=tv_embedded,tv,tv_simply,ios';
 
     if (process.env.YT_PO_TOKEN) {
       // Manual po_token override (if bgutil is unavailable)
