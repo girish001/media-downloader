@@ -82,7 +82,7 @@ RUN apk add --no-cache pkgconfig pixman-dev cairo-dev pango-dev jpeg-dev giflib-
     git clone --depth 1 https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git /tmp/bgutil-build
 WORKDIR /tmp/bgutil-build/server
 RUN npm install && \
-    npm install --save-dev typescript @types/node @types/express @types/jsdom && \
+    npm install typescript@5 @types/node @types/express @types/jsdom --no-save && \
     ./node_modules/.bin/tsc --skipLibCheck
 WORKDIR /app
 RUN mv /tmp/bgutil-build /opt/bgutil-ytdlp-pot-provider && \
