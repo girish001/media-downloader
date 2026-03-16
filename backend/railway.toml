@@ -1,0 +1,44 @@
+# ──────────────────────────────────────────────────────────────────────
+#  backend/railway.toml
+#  Railway service config for the Fastify API.
+#
+#  In Railway dashboard:
+#    Service → Settings → Root Directory = /backend
+#  Railway will auto-detect the Dockerfile in this folder.
+#
+#  REQUIRED env vars to set in Railway dashboard for this service:
+#    DATABASE_URL
+#    REDIS_URL
+#    AWS_ACCESS_KEY_ID
+#    AWS_SECRET_ACCESS_KEY
+#    AWS_REGION
+#    AWS_BUCKET
+#    CORS_ORIGIN        = https://<your-frontend>.up.railway.app
+# ──────────────────────────────────────────────────────────────────────
+
+[build]
+  builder      = "dockerfile"
+  dockerfilePath = "Dockerfile"
+
+[deploy]
+  # docker-entrypoint.sh handles: prisma db push → start server
+  # No startCommand needed — CMD in Dockerfile calls the entrypoint
+  healthcheckPath    = "/health"
+  healthcheckTimeout = 60
+  restartPolicyType  = "on_failure"
+  restartPolicyMaxRetries = 3
+
+[[deploy.environmentVariables]]
+  NODE_ENV                    = "production"
+  PORT                        = "4000"
+  TMP_DIR                     = "/tmp/mediaproc"
+  FILE_TTL_HOURS              = "24"
+  MAX_VIDEO_SIZE_MB           = "500"
+  RATE_LIMIT_GLOBAL_MAX       = "300"
+  RATE_LIMIT_GLOBAL_WINDOW    = "1 minute"
+  RATE_LIMIT_DOWNLOAD_MAX     = "60"
+  RATE_LIMIT_DOWNLOAD_WINDOW  = "10 minutes"
+  RATE_LIMIT_DAILY_MAX        = "20"
+  JOB_TIMEOUT_SEC             = "600"
+  SIGNED_URL_TTL_SEC          = "3600"
+  LOG_LEVEL                   = "info"

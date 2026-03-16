@@ -1,0 +1,38 @@
+# ──────────────────────────────────────────────────────────────────────
+#  worker/railway.toml
+#  Railway service config for the BullMQ + FFmpeg worker.
+#
+#  In Railway dashboard:
+#    Service → Settings → Root Directory = /worker
+#  Railway will auto-detect the Dockerfile in this folder.
+#
+#  This service has NO public port — it only connects outbound to
+#  Redis, PostgreSQL, and S3.
+#
+#  REQUIRED env vars to set in Railway dashboard for this service:
+#    DATABASE_URL
+#    REDIS_URL
+#    AWS_ACCESS_KEY_ID
+#    AWS_SECRET_ACCESS_KEY
+#    AWS_REGION
+#    AWS_BUCKET
+# ──────────────────────────────────────────────────────────────────────
+
+[build]
+  builder        = "dockerfile"
+  dockerfilePath = "Dockerfile"
+
+[deploy]
+  restartPolicyType       = "on_failure"
+  restartPolicyMaxRetries = 5
+
+[[deploy.environmentVariables]]
+  NODE_ENV               = "production"
+  TMP_DIR                = "/tmp/mediaproc"
+  MAX_CONCURRENT_JOBS    = "2"
+  MAX_VIDEO_SIZE_MB      = "500"
+  FILE_TTL_HOURS         = "24"
+  JOB_TIMEOUT_SEC        = "600"
+  YTDLP_TIMEOUT_SEC      = "300"
+  MAX_VIDEO_DURATION_SEC = "7200"
+  LOG_LEVEL              = "info"

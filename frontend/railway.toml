@@ -1,0 +1,29 @@
+# frontend/railway.toml
+# ─────────────────────────────────────────────────────────────
+# Railway service config for the Next.js frontend.
+#
+# DASHBOARD SETUP (one-time):
+#   Service → Settings → Root Directory → set to: /frontend
+#
+# REQUIRED variables to set in Railway dashboard:
+#   BACKEND_URL   = https://<your-backend-service>.up.railway.app
+# ─────────────────────────────────────────────────────────────
+
+[build]
+  builder        = "dockerfile"
+  dockerfilePath = "Dockerfile"
+
+[deploy]
+  # Next.js standalone output produces server.js — must use "node server.js"
+  # NOT "npm start" (which calls "next start" — binary not present in standalone)
+  startCommand       = "node server.js"
+  healthcheckPath    = "/"
+  healthcheckTimeout = 300
+  restartPolicyType  = "on_failure"
+  restartPolicyMaxRetries = 3
+
+[variables]
+  NODE_ENV                = "production"
+  PORT                    = "3000"
+  HOSTNAME                = "0.0.0.0"
+  NEXT_TELEMETRY_DISABLED = "1"

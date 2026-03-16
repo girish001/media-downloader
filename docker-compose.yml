@@ -1,0 +1,229 @@
+# ════════════════════════════════════════════════════════════════════
+#  MediaProc — Development docker-compose.yml
+#
+#  Services (7):
+#    postgres   — PostgreSQL 16
+#    redis      — Redis 7
+#    minio      — Local S3-compatible storage (replaces AWS S3 in dev)
+#    backend    — Fastify API on :4000
+#    worker     — BullMQ + FFmpeg + yt-dlp
+#    frontend   — Next.js 14 on :3000
+#    nginx      — Reverse proxy on :80
+#
+#  Quick start:
+#    docker compose up --build
+#
+#  Access:
+#    App:        http://localhost
+#    API:        http://localhost/api
+#    Swagger:    http://localhost:4000/docs
+#    Bull Board: http://localhost:4000/admin/queues
+#    MinIO UI:   http://localhost:9001  (user: minioadmin / minioadmin)
+# ════════════════════════════════════════════════════════════════════
+
+services:
+
+  # ── PostgreSQL ────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       mediaproc
+      POSTGRES_USER:     mediaproc
+      POSTGRES_PASSWORD: devpassword123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/prisma/migrations/0001_initial.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5432:5432"        # expose for local psql / Prisma Studio
+    healthcheck:
+      test:         ["CMD-SHELL", "pg_isready -U mediaproc -d mediaproc"]
+      interval:     10s
+      timeout:      5s
+      retries:      5
+      start_period: 20s
+    networks: [internal]
+
+  # ── Redis ─────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --requirepass devredis123 --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"        # expose for local redis-cli
+    healthcheck:
+      test:     ["CMD", "redis-cli", "-a", "devredis123", "ping"]
+      interval: 10s
+      timeout:  5s
+      retries:  5
+      start_period: 10s
+    networks: [internal]
+
+  # ── MinIO (local S3) ──────────────────────────────────────────────
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER:     minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+      MINIO_SERVER_URL:    http://localhost:9000
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"        # S3 API
+      - "9001:9001"        # MinIO Console UI
+    healthcheck:
+      test:     ["CMD", "mc", "ready", "local"]
+      interval: 15s
+      timeout:  5s
+      retries:  5
+      start_period: 10s
+    networks: [internal]
+
+  # ── MinIO bucket init (one-shot) ──────────────────────────────────
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio: { condition: service_healthy }
+    entrypoint: >
+      /bin/sh -c "
+        mc alias set local http://minio:9000 minioadmin minioadmin &&
+        mc mb --ignore-existing local/mediaproc &&
+        mc anonymous set download local/mediaproc &&
+        echo 'MinIO bucket ready'
+      "
+    networks: [internal]
+
+  # ── Backend API ───────────────────────────────────────────────────
+  backend:
+    build:
+      context:    ./backend
+      dockerfile: Dockerfile
+      cache_from:
+        - type=local,src=/tmp/buildcache/backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV:        development
+      PORT:            4000
+      LOG_LEVEL:       debug
+      CORS_ORIGIN:     http://localhost,http://localhost:3000
+      DATABASE_URL:    postgresql://mediaproc:devpassword123@postgres:5432/mediaproc
+      REDIS_URL:       redis://:devredis123@redis:6379
+      S3_ENDPOINT:     http://minio:9000
+      S3_REGION:       us-east-1
+      S3_ACCESS_KEY:   minioadmin
+      S3_SECRET_KEY:   minioadmin
+      S3_BUCKET:       mediaproc
+      S3_PATH_STYLE:   "true"
+      S3_PUBLIC_URL:   http://localhost:9000
+      JOB_TIMEOUT_SEC: 600
+      MAX_BODY_SIZE_MB: 2
+      SIGNED_URL_TTL_SEC: 3600
+      # Rate limits — raise these for dev/testing, tighten for production
+      RATE_LIMIT_GLOBAL_MAX:    300
+      RATE_LIMIT_GLOBAL_WINDOW: "1 minute"
+      RATE_LIMIT_PARSE_MAX:     120
+      RATE_LIMIT_PARSE_WINDOW:  "1 minute"
+      RATE_LIMIT_DOWNLOAD_MAX:  60
+      RATE_LIMIT_DOWNLOAD_WINDOW: "10 minutes" 
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis:    { condition: service_healthy }
+    ports:
+      - "4000:4000"        # direct access for Swagger / debugging
+    healthcheck:
+      test:     ["CMD-SHELL", "wget -qO- http://localhost:4000/health || exit 1"]
+      interval: 30s
+      timeout:  5s
+      retries:  5
+      start_period: 40s
+    networks: [internal]
+
+  # ── Worker ────────────────────────────────────────────────────────
+  worker:
+    build:
+      context:    ./worker
+      dockerfile: Dockerfile
+      cache_from:
+        - type=local,src=/tmp/buildcache/worker
+    restart: unless-stopped
+    environment:
+      NODE_ENV:               development
+      LOG_LEVEL:              debug
+      DATABASE_URL:           postgresql://mediaproc:devpassword123@postgres:5432/mediaproc
+      REDIS_URL:              redis://:devredis123@redis:6379
+      S3_ENDPOINT:            http://minio:9000
+      S3_REGION:              us-east-1
+      S3_ACCESS_KEY:          minioadmin
+      S3_SECRET_KEY:          minioadmin
+      S3_BUCKET:              mediaproc
+      S3_PATH_STYLE:          "true"
+      S3_PUBLIC_URL:          http://localhost:9000/mediaproc
+      TMP_DIR:                /tmp/mediaproc
+      WORKER_CONCURRENCY:     2
+      YTDLP_TIMEOUT_SEC:      300
+      MAX_VIDEO_SIZE_MB:      500
+      MAX_VIDEO_DURATION_SEC: 7200
+    volumes:
+      - media_tmp:/tmp/mediaproc
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis:    { condition: service_healthy }
+      backend:  { condition: service_healthy }
+      minio-init:
+        condition: service_completed_successfully
+    networks: [internal]
+
+  # ── Frontend ──────────────────────────────────────────────────────
+  frontend:
+    build:
+      context:    ./frontend
+      dockerfile: Dockerfile
+      cache_from:
+        - type=local,src=/tmp/buildcache/frontend
+    restart: unless-stopped
+    ports:
+    - "3000:3000"
+    environment:
+      NODE_ENV:            production
+      NEXT_PUBLIC_API_URL: /api
+      BACKEND_URL:         http://backend:4000
+      PORT:                3000
+      HOSTNAME:            "0.0.0.0"
+    depends_on:
+      backend: { condition: service_healthy }
+    healthcheck:
+      test:     ["CMD-SHELL", "wget -qO- http://localhost:3000 || exit 1"]
+      interval: 20s
+      timeout:  5s
+      retries:  5
+      start_period: 30s
+    networks: [internal]
+
+  # ── Nginx (dev reverse proxy) ─────────────────────────────────────
+  nginx:
+    image: nginx:1.25-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.dev.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      frontend: { condition: service_healthy }
+      backend:  { condition: service_healthy }
+    networks: [internal]
+
+# ── Volumes ──────────────────────────────────────────────────────────
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+  media_tmp:
+
+# ── Networks ──────────────────────────────────────────────────────────
+networks:
+  internal:
+    driver: bridge
