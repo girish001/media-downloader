@@ -81,7 +81,6 @@ RUN apk add --no-cache wget git python3 py3-pip && \
 # ── bgutil PO token provider (server required for PO tokens)
 # bgutil PO token provider
 # bgutil PO token provider
-# bgutil PO token provider
 RUN apk add --no-cache \
 python3 \
 py3-pip \
@@ -93,14 +92,11 @@ cairo-dev \
 pango-dev \
 jpeg-dev \
 giflib-dev \
-build-base
-    pkgconfig pixman-dev cairo-dev pango-dev jpeg-dev giflib-dev build-base && \
-    pip3 install --break-system-packages bgutil-ytdlp-pot-provider && \
-    git clone --depth 1 https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git \
-        /opt/bgutil-ytdlp-pot-provider && \
-    cd /opt/bgutil-ytdlp-pot-provider/server && \
-    npm install && \
-    npm run build
+build-base && \
+pip3 install --break-system-packages bgutil-ytdlp-pot-provider && \
+git clone --depth 1 https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git /opt/bgutil-ytdlp-pot-provider && \
+cd /opt/bgutil-ytdlp-pot-provider/server && \
+npm install
 
 # ── Runtime user + temp directory
 RUN addgroup -g 1001 -S nodejs && \
