@@ -81,7 +81,7 @@ RUN apk add --no-cache pkgconfig pixman-dev cairo-dev pango-dev jpeg-dev giflib-
     pip3 install --break-system-packages bgutil-ytdlp-pot-provider && \
     git clone --depth 1 https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git /tmp/bgutil-build && \
     cd /tmp/bgutil-build/server && npm install && \
-    npm install --save-dev @types/node @types/express @types/jsdom commander && \
+    npm install --save-dev typescript @types/node @types/express @types/jsdom commander && \
     ./node_modules/.bin/tsc --skipLibCheck && \
     mv /tmp/bgutil-build /opt/bgutil-ytdlp-pot-provider && \
     echo "bgutil POT provider installed" 
