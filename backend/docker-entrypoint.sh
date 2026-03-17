@@ -76,7 +76,7 @@ fi
 if [ -d "/opt/bgutil-ytdlp-pot-provider/server" ]; then
   echo "[entrypoint] Starting bgutil PO token provider server on port 4416..."
   cd /opt/bgutil-ytdlp-pot-provider/server && \
-    node build/main.js --port 4416 &
+    node src/index.js --port 4416 &
   BGUTIL_PID=$!
   sleep 2
   if kill -0 $BGUTIL_PID 2>/dev/null; then
