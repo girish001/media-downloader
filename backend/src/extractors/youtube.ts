@@ -138,11 +138,16 @@ export class YoutubeExtractor extends BaseExtractor {
     // ios: different bot-detection path. QUATERNARY.
     //
     // Manual YT_PO_TOKEN env var still supported as override if bgutil is down.
-   let extractorArgs = 'youtube:player_client=ios,tv,tv_simply,tv_embedded';
+   let extractorArgs = 'youtube:player_client=ios,tv,tv_simply,tv_embedded;player_skip=webpage,configs';
 
 args.push(
   '--add-header',
   'User-Agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36'
+);
+
+args.push(
+  '--add-header',
+  'Referer:https://www.youtube.com/'
 );
 
 if (process.env.YT_COOKIES_FILE) {
