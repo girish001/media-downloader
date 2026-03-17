@@ -299,7 +299,7 @@ async function processJob(job: Job): Promise<{
   if (platform === 'youtube') {
     // bgutil PO token provider runs on port 4416 (started by entrypoint).
     // yt-dlp discovers it via the installed pip plugin — no manual po_token needed.
-  let extractorArgs = 'youtube:player_client=tv,tv_simply,tv_embedded,ios';
+  let extractorArgs = 'youtube:player_client=ios,tv,tv_simply,tv_embedded';
 
 ytdlpArgs.push(
   '--add-header',
