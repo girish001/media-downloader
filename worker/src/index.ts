@@ -303,7 +303,8 @@ async function processJob(job: Job): Promise<{
     // mweb requires a PO token from datacenter IPs (Railway) — without bgutil
     // running it returns 'DRM protected' errors. Use tv clients which work
     // without PO tokens. mweb is only enabled when YT_PO_TOKEN is set manually.
-   let extractorArgs = 'youtube:player_client=tv,tv_simply,tv_embedded,ios';
+   let extractorArgs = 'youtube:player_client=tv_embedded,tv,tv_simply,ios';
+
 if (process.env.YT_PO_TOKEN) {
 
   extractorArgs =
@@ -318,8 +319,10 @@ if (process.env.YT_PO_TOKEN) {
   ytdlpArgs.push('--extractor-args', extractorArgs);
 }
 
+ytdlpArgs.push('--extractor-args', extractorArgs);
+
 // avoid DRM formats
-args.push('--format', 'bv*[vcodec!=none]+ba/b');
+ytdlpArgs.push('--format', 'bv*[vcodec!=none]+ba/b');
 
     if (process.env.YT_PROXY) {
       ytdlpArgs.push('--proxy', process.env.YT_PROXY);
