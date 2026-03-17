@@ -140,6 +140,11 @@ export class YoutubeExtractor extends BaseExtractor {
     // Manual YT_PO_TOKEN env var still supported as override if bgutil is down.
    let extractorArgs = 'youtube:player_client=tv,tv_simply,tv_embedded,ios';
 
+args.push(
+  '--add-header',
+  'User-Agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36'
+);
+
 if (process.env.YT_COOKIES_FILE) {
   args.push('--cookies', process.env.YT_COOKIES_FILE);
 }
