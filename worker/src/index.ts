@@ -313,15 +313,12 @@ if (process.env.YT_COOKIES_FILE) {
 
 if (process.env.YT_PO_TOKEN) {
   extractorArgs =
-    `youtube:player_client=youtube:player_client=tv,tv_simply,tv_embedded,ios;po_token=mweb+${process.env.YT_PO_TOKEN}`;
+    `youtube:player_client=mweb,tv_embedded,tv,ios;po_token=mweb+${process.env.YT_PO_TOKEN}`;
 
   log.info({ jobId }, 'YouTube: manual po_token active');
 }
 
 ytdlpArgs.push('--extractor-args', extractorArgs);
-
-// avoid DRM formats
-ytdlpArgs.push('--format', 'bv*[vcodec!=none]+ba/b');
 
     if (process.env.YT_PROXY) {
       ytdlpArgs.push('--proxy', process.env.YT_PROXY);
