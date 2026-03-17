@@ -303,18 +303,20 @@ async function processJob(job: Job): Promise<{
     // mweb requires a PO token from datacenter IPs (Railway) — without bgutil
     // running it returns 'DRM protected' errors. Use tv clients which work
     // without PO tokens. mweb is only enabled when YT_PO_TOKEN is set manually.
-    let extractorArgs = 'youtube:player_client=tv_embedded,tv,tv_simply,ios';
+   let extractorArgs = 'youtube:player_client=tv,tv_simply,tv_embedded,ios';
+if (process.env.YT_PO_TOKEN) {
 
-    if (process.env.YT_PO_TOKEN) {
-      // Manual po_token override (if bgutil is unavailable)
-      extractorArgs = `youtube:player_client=mweb,tv_embedded,tv,ios;po_token=mweb+${process.env.YT_PO_TOKEN}`;
-      log.info({ jobId }, 'YouTube: manual po_token active');
-      // pass cookies to yt-dlp (VERY IMPORTANT for YouTube bot detection)
-if (process.env.YT_COOKIES_FILE) {
-  args.push('--cookies', process.env.YT_COOKIES_FILE);
+  extractorArgs =
+    `youtube:player_client=mweb,tv_embedded,tv,ios;po_token=mweb+${process.env.YT_PO_TOKEN}`;
+
+  log.info({ jobId }, 'YouTube: manual po_token active');
+
+  if (process.env.YT_COOKIES_FILE) {
+    ytdlpArgs.push('--cookies', process.env.YT_COOKIES_FILE);
+  }
+
+  ytdlpArgs.push('--extractor-args', extractorArgs);
 }
-
-args.push('--extractor-args', extractorArgs);
 
 // avoid DRM formats
 args.push('--format', 'bv*[vcodec!=none]+ba/b');
