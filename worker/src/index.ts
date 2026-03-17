@@ -305,17 +305,8 @@ async function processJob(job: Job): Promise<{
     // without PO tokens. mweb is only enabled when YT_PO_TOKEN is set manually.
    let extractorArgs = 'youtube:player_client=tv,tv_simply,tv_embedded,ios';
 
-// ALWAYS pass cookies if available
 if (process.env.YT_COOKIES_FILE) {
   ytdlpArgs.push('--cookies', process.env.YT_COOKIES_FILE);
-  log.info({ jobId }, 'YouTube: cookies enabled');
-}
-
-if (process.env.YT_PO_TOKEN) {
-  extractorArgs =
-    `youtube:player_client=mweb,tv_embedded,tv,ios;po_token=mweb+${process.env.YT_PO_TOKEN}`;
-
-  log.info({ jobId }, 'YouTube: manual po_token active');
 }
 
 ytdlpArgs.push('--extractor-args', extractorArgs);
