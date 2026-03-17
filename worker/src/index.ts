@@ -309,16 +309,15 @@ async function processJob(job: Job): Promise<{
       // Manual po_token override (if bgutil is unavailable)
       extractorArgs = `youtube:player_client=mweb,tv_embedded,tv,ios;po_token=mweb+${process.env.YT_PO_TOKEN}`;
       log.info({ jobId }, 'YouTube: manual po_token active');
-      if (process.env.YT_COOKIES_FILE) {
-        ytdlpArgs.push('--cookies', process.env.YT_COOKIES_FILE);
-      }
-    }
+      // pass cookies to yt-dlp (VERY IMPORTANT for YouTube bot detection)
+if (process.env.YT_COOKIES_FILE) {
+  args.push('--cookies', process.env.YT_COOKIES_FILE);
+}
 
-    ytdlpArgs.push(
-      '--extractor-args', extractorArgs,
-      '--geo-bypass',
-      '--no-check-formats',
-    );
+args.push('--extractor-args', extractorArgs);
+
+// avoid DRM formats
+args.push('--format', 'bv*[vcodec!=none]+ba/b');
 
     if (process.env.YT_PROXY) {
       ytdlpArgs.push('--proxy', process.env.YT_PROXY);
